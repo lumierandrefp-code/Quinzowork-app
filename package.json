@@ -1,1 +1,15 @@
-
+{
+  "name": "quinzowork",
+  "version": "1.0.0",
+  "description": "Plataforma QUINZOWORK Integrada",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node -e \"process.exit(0)\"",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "express": "^4.21.2"
+  }
+}

@@ -1,1 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUINZOWORK | Plataforma Integrada</title>
+  <meta name="description" content="Plataforma QUINZOWORK Integrada para serviços, produtos digitais e gestão eficiente">
+  <meta property="og:title" content="QUINZOWORK | Plataforma Integrada">
+  <meta property="og:description" content="Plataforma QUINZOWORK Integrada para serviços, produtos digitais e gestão eficiente">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
+  <!-- Navegação -->
+  <header class="navbar">
+    <div class="logo-area">
+      <div class="logo" role="button" tabindex="0" onclick="navigate('home')">QUINZOWORK</div>
+    </div>
+
+    <!-- Barra de Busca Global -->
+    <div class="global-search-container" id="global-search-container">
+      <div class="global-search-input-wrap">
+        <svg class="global-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          id="global-search-input" 
+          type="search" 
+          placeholder="Pesquisar ofertas, perfis ou produtos..." 
+          aria-label="Busca global em toda a plataforma"
+          autocomplete="off"
+          spellcheck="false"
+          oninput="handleGlobalSearchInput(event)"
+          onfocus="handleGlobalSearchFocus()"
+          onkeydown="handleGlobalSearchKeydown(event)"
+        >
+        <button 
+          id="global-search-clear-btn" 
+          type="button" 
+          class="global-search-clear" 
+          aria-label="Limpar busca" 
+          hidden 
+          onclick="clearGlobalSearch()"
+        >&times;</button>
+      </div>
+
+      <!-- Dropdown com os Resultados da Busca Global -->
+      <div 
+        class="global-search-dropdown" 
+        id="global-search-dropdown" 
+        hidden 
+        role="region" 
+        aria-live="polite" 
+        aria-label="Resultados da busca global"
+      >
+        <div class="global-search-tabs" id="global-search-tabs">
+          <button type="button" class="search-tab active" data-tab="all" onclick="setGlobalSearchTab('all')">Todos <span class="tab-count" id="count-all">0</span></button>
+          <button type="button" class="search-tab" data-tab="jobs" onclick="setGlobalSearchTab('jobs')">Ofertas <span class="tab-count" id="count-jobs">0</span></button>
+          <button type="button" class="search-tab" data-tab="profiles" onclick="setGlobalSearchTab('profiles')">Perfis <span class="tab-count" id="count-profiles">0</span></button>
+          <button type="button" class="search-tab" data-tab="products" onclick="setGlobalSearchTab('products')">Produtos <span class="tab-count" id="count-products">0</span></button>
+        </div>
+
+        <div class="global-search-status" id="global-search-status" hidden>
+          <span class="search-spinner" aria-hidden="true"></span> A pesquisar em toda a plataforma...
+        </div>
+
+        <div class="global-search-results-content" id="global-search-results-content">
+          <!-- Conteúdo dinâmico com secções: Ofertas, Perfis, Produtos -->
+        </div>
+
+        <div class="global-search-empty" id="global-search-empty" hidden>
+          <p>Nenhum resultado encontrado para "<span id="global-search-query-display"></span>".</p>
+          <small>Tente pesquisar por cargos, tecnologias, serviços ou categorias.</small>
+        </div>
+
+        <div class="global-search-footer" id="global-search-footer">
+          <span class="search-tip">Dica: Use as setas ↑ ↓ para navegar e <strong>ESC</strong> para fechar</span>
+          <button type="button" class="btn-close-search" onclick="closeGlobalSearchDropdown()">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <button type="button" data-page="home" onclick="navigate('home')">Início</button>
+      <button type="button" data-page="loja" onclick="navigate('loja')">Loja</button>
+      <button type="button" data-page="job-offers" onclick="openJobOffers()">Ofertas de Trabalho</button>
+      <button type="button" data-page="sistema" onclick="navigate('sistema')">Painel</button>
+      <button type="button" id="admin-nav" data-page="admin" onclick="navigate('admin')" hidden>Administração</button>
+    </nav>
+  </header>
+
+  <!-- 1. LANDING PAGE / INSTITUCIONAL -->
+  <section id="home" class="page active">
+    <div class="hero">
+      <h1>Bem-vindo ao QUINZOWORK</h1>
+      <p>Sua solução completa para serviços, produtos digitais e gestão eficiente.</p>
+      <button class="btn-primary" onclick="navigate('loja')">Explorar Loja</button>
+    </div>
+    <div class="features">
+      <div class="card" id="feature-card-innovation">
+        <h3>Inovação</h3>
+        <p>Tecnologia de ponta para otimizar suas operações diárias.</p>
+      </div>
+      <div class="card" id="feature-card-security">
+        <h3>Segurança</h3>
+        <p>Dados protegidos e integrados em tempo real com Supabase.</p>
+      </div>
+      <div class="card" id="feature-card-convenience">
+        <h3>Praticidade</h3>
+        <p>Acesse e gerencie tudo diretamente pelo seu celular.</p>
+      </div>
+    </div>
+
+    <!-- Seção de Depoimentos / Feedback de Utilizadores -->
+    <section class="testimonials-section" id="home-testimonials" aria-labelledby="testimonials-heading">
+      <div class="testimonials-header" id="testimonials-header-block">
+        <div class="testimonials-title-wrap" id="testimonials-title-wrap">
+          <span class="testimonials-eyebrow" id="testimonials-eyebrow">FEEDBACK DA COMUNIDADE</span>
+          <h2 id="testimonials-heading">O que os nossos utilizadores dizem</h2>
+          <p class="testimonials-sub" id="testimonials-sub">Histórias reais de profissionais, empresas e clientes conectados através do QUINZOWORK.</p>
+        </div>
+
+        <div class="testimonials-toolbar" id="testimonials-toolbar">
+          <div class="testimonials-filter-chips" id="testimonials-filter-chips" role="tablist" aria-label="Filtrar depoimentos">
+            <button type="button" class="filter-chip active" id="filter-chip-all" onclick="filterTestimonials('all')" aria-selected="true">Todos</button>
+            <button type="button" class="filter-chip" id="filter-chip-freelancers" onclick="filterTestimonials('freelancer')" aria-selected="false">Freelancers</button>
+            <button type="button" class="filter-chip" id="filter-chip-companies" onclick="filterTestimonials('company')" aria-selected="false">Empresas</button>
+            <button type="button" class="filter-chip" id="filter-chip-clients" onclick="filterTestimonials('client')" aria-selected="false">Clientes</button>
+          </div>
+
+          <div class="testimonials-view-toggle" id="testimonials-view-toggle" role="group" aria-label="Modo de visualização">
+            <button type="button" class="view-toggle-btn active" id="btn-testimonials-carousel" onclick="setTestimonialsView('carousel')" title="Visualização em Carrossel" aria-pressed="true">
+              <span class="view-icon">⟷</span> Carrossel
+            </button>
+            <button type="button" class="view-toggle-btn" id="btn-testimonials-grid" onclick="setTestimonialsView('grid')" title="Visualização em Grade" aria-pressed="false">
+              <span class="view-icon">⊞</span> Grade
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Palco de Depoimentos (Carrossel ou Grade) -->
+      <div class="testimonials-stage carousel-mode" id="testimonials-stage">
+        <button type="button" class="carousel-nav-btn prev" id="testimonials-prev-btn" onclick="prevTestimonial()" aria-label="Depoimento anterior" title="Anterior">
+          &#10094;
+        </button>
+
+        <div class="testimonials-viewport" id="testimonials-viewport">
+          <div class="testimonials-track" id="testimonials-track" role="region" aria-live="polite">
+            <!-- Conteúdo dinâmico inserido via app.js -->
+          </div>
+        </div>
+
+        <button type="button" class="carousel-nav-btn next" id="testimonials-next-btn" onclick="nextTestimonial()" aria-label="Próximo depoimento" title="Próximo">
+          &#10095;
+        </button>
+      </div>
+
+      <!-- Indicadores de paginação para Carrossel -->
+      <div class="testimonials-pagination" id="testimonials-pagination" role="group" aria-label="Navegação dos depoimentos">
+        <!-- Indicadores gerados via JS -->
+      </div>
+
+      <!-- Rodapé da Seção com Métricas e Botão de Ação -->
+      <div class="testimonials-footer" id="testimonials-footer">
+        <div class="testimonials-metric-pill" id="testimonials-metric-pill">
+          <span class="metric-stars" id="metric-stars">★★★★★</span>
+          <strong id="metric-score">4.9 / 5.0</strong>
+          <span class="metric-divider" id="metric-divider">·</span>
+          <span class="metric-note" id="metric-note">+1.250 avaliações de confiança</span>
+        </div>
+        <button type="button" class="btn-testimonial-action" id="btn-open-feedback-modal" onclick="openFeedbackModal()">
+          + Partilhar o Seu Depoimento
+        </button>
+      </div>
+
+      <!-- Modal para envio de feedback dinâmico -->
+      <div class="feedback-modal-overlay" id="feedback-modal-overlay" hidden onclick="handleFeedbackOverlayClick(event)">
+        <div class="feedback-modal-dialog" id="feedback-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+          <div class="feedback-modal-header" id="feedback-modal-header">
+            <div>
+              <span class="feedback-modal-eyebrow" id="feedback-modal-eyebrow">PARTILHE A SUA VOZ</span>
+              <h3 id="feedback-modal-title">Novo Depoimento</h3>
+            </div>
+            <button type="button" class="feedback-modal-close" id="feedback-modal-close-btn" onclick="closeFeedbackModal()" aria-label="Fechar modal">&times;</button>
+          </div>
+
+          <form id="feedback-submission-form" onsubmit="handleFeedbackSubmit(event)">
+            <div class="feedback-form-row" id="feedback-form-row-1">
+              <div class="feedback-field" id="field-author-name">
+                <label for="feedback-input-author">Seu Nome / Empresa *</label>
+                <input type="text" id="feedback-input-author" placeholder="Ex: Marlene Costa" required maxlength="60">
+              </div>
+              <div class="feedback-field" id="field-author-title">
+                <label for="feedback-input-title">Cargo / Especialidade *</label>
+                <input type="text" id="feedback-input-title" placeholder="Ex: Designer UI/UX Freelancer" required maxlength="80">
+              </div>
+            </div>
+
+            <div class="feedback-form-row" id="feedback-form-row-2">
+              <div class="feedback-field" id="field-category">
+                <label for="feedback-select-category">Categoria *</label>
+                <select id="feedback-select-category" required>
+                  <option value="freelancer">Freelancer / Especialista</option>
+                  <option value="company">Empresa / Contratante</option>
+                  <option value="client">Cliente de Serviços Digitais</option>
+                </select>
+              </div>
+              <div class="feedback-field" id="field-rating">
+                <label for="feedback-select-rating">Avaliação *</label>
+                <select id="feedback-select-rating" required>
+                  <option value="5">★★★★★ 5 estrelas - Excelente</option>
+                  <option value="4">★★★★☆ 4 estrelas - Muito Bom</option>
+                  <option value="3">★★★☆☆ 3 estrelas - Bom</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="feedback-field" id="field-quote">
+              <label for="feedback-textarea-quote">Seu Depoimento *</label>
+              <textarea id="feedback-textarea-quote" rows="4" placeholder="Conte como o QUINZOWORK ajudou a alavancar os seus projetos ou a sua empresa..." required maxlength="400"></textarea>
+              <small class="feedback-char-counter" id="feedback-char-counter">Máximo de 400 caracteres</small>
+            </div>
+
+            <div class="feedback-modal-actions" id="feedback-modal-actions">
+              <button type="button" class="btn-feedback-cancel" id="btn-feedback-cancel" onclick="closeFeedbackModal()">Cancelar</button>
+              <button type="submit" class="btn-feedback-submit" id="btn-feedback-submit">Publicar Depoimento</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- 2. LOJA VIRTUAL / E-COMMERCE -->
+  <section id="loja" class="page">
+    <h2>Nossa Loja</h2>
+    <div class="products-grid" id="products-list">
+      <!-- Produtos inseridos via JS -->
+    </div>
+    <div class="cart-summary">
+      <h3>Carrinho: <span id="cart-count">0</span> itens</h3>
+      <button class="btn-success" onclick="checkout()">Finalizar Compra</button>
+    </div>
+  </section>
+
+  <!-- 3. SISTEMA / APLICAÇÃO WEB -->
+  <section id="sistema" class="page">
+    <h2>Painel do Sistema</h2>
+    <div class="auth-box" id="auth-box">
+      <h3>Acessar Conta</h3>
+      
+      <!-- Botão Google -->
+      <button class="btn-google" onclick="loginWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Entrar com Google
+      </button>
+
+      <div class="divider"><span>ou use seu e-mail</span></div>
+
+      <input type="email" id="email" placeholder="Seu e-mail">
+      <input type="password" id="password" placeholder="Sua senha">
+      <div class="auth-buttons">
+        <button onclick="login()">Entrar</button>
+        <button onclick="register()">Cadastrar</button>
+      </div>
+      <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="dashboard" id="dashboard" style="display:none;">
+      <div class="profile-heading">
+        <div>
+          <span class="eyebrow">CONTA AUTENTICADA</span>
+          <h3>Meu Perfil</h3>
+        </div>
+        <button class="btn-danger profile-logout" onclick="logout()">Sair</button>
+      </div>
+      <div class="profile-hero-card">
+        <div class="profile-avatar-area"><span class="profile-avatar-label">Foto de perfil</span><button class="profile-avatar-wrap" id="profile-avatar-button" type="button" onclick="openAvatarPicker()" aria-label="Alterar foto de perfil"><img id="profile-avatar" class="profile-avatar" alt="Foto de perfil" hidden><span id="profile-avatar-placeholder" class="profile-avatar-placeholder" aria-hidden="true">Foto</span></button><input id="profile-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="handleAvatarSelection(event)"><button class="btn-secondary profile-avatar-change" id="profile-avatar-change" type="button" onclick="openAvatarPicker()">Alterar foto</button></div>
+        <div><span class="eyebrow">PERFIL PROFISSIONAL</span><h3 id="profile-name">Ainda não informado</h3><p id="profile-display-title">Ainda não informado</p><span class="profile-role-badge" id="profile-role">Ainda não informado</span></div>
+      </div>
+      <div class="profile-action-row"><button class="btn-primary" type="button" onclick="toggleProfileEditor()">Editar Perfil</button><button class="btn-secondary" type="button" onclick="openCurrentUserPublicProfile()">Ver Perfil Público</button></div>
+      <div class="dashboard-feature-card card"><div><span class="eyebrow">OPORTUNIDADES</span><h4>Ofertas de Trabalho</h4><p>Pesquise ofertas abertas, publique oportunidades e gestione as suas ofertas.</p></div><button class="btn-primary" type="button" onclick="openJobOffers()">Abrir Ofertas de Trabalho</button></div>
+      <div class="profile-display-grid">
+        <section class="profile-section"><h4>Informações profissionais</h4><div class="profile-detail"><span>Biografia</span><p id="profile-display-bio">Ainda não informado</p></div><div class="profile-detail"><span>Competências</span><p id="profile-display-skills">Ainda não informado</p></div><div class="profile-detail"><span>Experiência</span><p id="profile-display-experience">Ainda não informado</p></div><div class="profile-detail"><span>Formação</span><p id="profile-display-education">Ainda não informado</p></div><div class="profile-detail"><span>Disponibilidade</span><p id="profile-display-availability">Ainda não informado</p></div><div class="profile-detail"><span>Valor por hora</span><p id="profile-display-hourly-rate">Ainda não informado</p></div></section>
+        <section class="profile-section"><h4>Contactos e presença online</h4><div class="profile-detail"><span>E-mail da conta</span><p id="profile-email"></p></div><div class="profile-detail"><span>Localização</span><p id="profile-display-location">Ainda não informado</p></div><div class="profile-detail"><span>Telefone</span><p id="profile-display-phone">Ainda não informado</p></div><div class="profile-detail"><span>Website / Portfólio</span><p id="profile-display-website">Ainda não informado</p></div><div class="profile-detail"><span>LinkedIn</span><p id="profile-display-linkedin">Ainda não informado</p></div></section>
+      </div>
+
+      <!-- MINHAS OFERTAS (Para contas Business / Empregadores) -->
+      <section class="card my-job-offers-card" id="my-job-offers-section" hidden>
+        <div class="profile-heading">
+          <div>
+            <span class="eyebrow">GESTÃO DE VAGAS</span>
+            <h4>Minhas Ofertas</h4>
+            <p class="section-subtitle">Aceda às suas ofertas e veja os candidatos que se candidataram.</p>
+          </div>
+          <div class="my-job-offers-actions">
+            <button class="btn-secondary" type="button" onclick="loadEmployerOffers()">Atualizar</button>
+            <button class="btn-primary" type="button" onclick="openJobOfferForm()">Publicar oferta</button>
+          </div>
+        </div>
+        <p id="my-job-offers-message" class="jobs-message" role="status" aria-live="polite"></p>
+        <p id="my-job-offers-loading" class="jobs-loading" hidden>Carregando as suas ofertas...</p>
+        <div id="my-job-offers-list" class="my-job-offers-list"></div>
+        <div id="my-job-offers-empty" class="jobs-empty" hidden>
+          Ainda não publicou nenhuma oferta de trabalho. <button type="button" class="link-button" onclick="openJobOfferForm()">Publicar a sua primeira oferta</button>
+        </div>
+      </section>
+
+      <!-- MINHAS CANDIDATURAS -->
+      <section class="card my-applications-card" id="my-applications-section">
+        <div class="profile-heading">
+          <div>
+            <span class="eyebrow">ACOMPANHAMENTO</span>
+            <h4>Minhas Candidaturas</h4>
+            <p class="section-subtitle">Acompanhe as vagas às quais já submeteu a sua candidatura.</p>
+          </div>
+          <button class="btn-secondary" type="button" onclick="loadMyApplications()">Atualizar</button>
+        </div>
+        <p id="my-applications-message" class="jobs-message" role="status" aria-live="polite"></p>
+        <p id="my-applications-loading" class="jobs-loading" hidden>Carregando candidaturas...</p>
+        <div id="my-applications-list" class="my-applications-list"></div>
+        <div id="my-applications-empty" class="jobs-empty" hidden>
+          Ainda não se candidatou a nenhuma oferta. <button type="button" class="link-button" onclick="openJobOffers()">Explorar ofertas de trabalho</button>
+        </div>
+      </section>
+
+      <!-- MODAL DE DETALHES DA CANDIDATURA -->
+      <div class="app-modal-overlay" id="application-detail-modal" hidden onclick="handleAppModalOverlayClick(event)">
+        <div class="app-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="app-modal-title" id="app-modal-dialog">
+          <div class="app-modal-header">
+            <div>
+              <span class="app-modal-eyebrow">DETALHES DA CANDIDATURA</span>
+              <h3 id="app-modal-title">Oferta de Trabalho</h3>
+              <p id="app-modal-subtitle" class="app-modal-subtitle">Empresa / Anunciante</p>
+            </div>
+            <button type="button" class="app-modal-close" id="app-modal-close-btn" onclick="closeApplicationDetailModal()" aria-label="Fechar detalhes">&times;</button>
+          </div>
+
+          <div class="app-modal-body" id="app-modal-body">
+            <!-- Conteúdo dinâmico preenchido via JavaScript -->
+          </div>
+        </div>
+      </div>
+      <form id="profile-form" class="profile-form" hidden onsubmit="saveProfile(event)">
+        <div class="profile-form-section"><h4>Informações pessoais</h4><label for="profile-full-name">Nome completo</label><input id="profile-full-name" type="text" maxlength="120" autocomplete="name" required><label for="profile-role-select">Tipo de utilizador</label><select id="profile-role-select" class="profile-select" required><option value="">Selecione uma opção</option><option value="freelancer">Freelancer</option><option value="job_seeker">Job Seeker</option><option value="remote_worker">Remote Worker</option><option value="creator">Creator</option><option value="business">Business</option></select><p class="form-hint">Clique na foto ou em “Alterar foto” para escolher uma imagem JPG, PNG ou WebP de até 5 MB.</p></div>
+        <div class="profile-form-section"><h4>Informações profissionais</h4><label for="profile-professional-title">Título profissional</label><select id="profile-professional-title" class="profile-select" onchange="renderSkillOptions()"><option value="">Selecione o seu título profissional</option><option>Desenvolvedor Web</option><option>Desenvolvedor Front-end</option><option>Desenvolvedor Back-end</option><option>Desenvolvedor Full Stack</option><option>Desenvolvedor Mobile</option><option>Engenheiro de Software</option><option>Designer Gráfico</option><option>UI/UX Designer</option><option>Web Designer</option><option>Editor de Vídeo</option><option>Fotógrafo</option><option>Criador de Conteúdo</option><option>Social Media Manager</option><option>Especialista em Marketing Digital</option><option>Especialista em SEO</option><option>Copywriter</option><option>Redator</option><option>Tradutor</option><option>Professor</option><option>Tutor</option><option>Assistente Virtual</option><option>Assistente Administrativo</option><option>Atendente ao Cliente</option><option>Recepcionista</option><option>Vendedor</option><option>Consultor de Negócios</option><option>Gestor de Projetos</option><option>Contabilista</option><option>Técnico de Informática</option><option>Técnico de Suporte</option><option>Analista de Dados</option><option>Cientista de Dados</option><option>Profissional de Recursos Humanos</option><option>Recrutador</option><option>Empreendedor</option><option>Outro</option></select><label for="profile-bio">Biografia / apresentação</label><textarea id="profile-bio" maxlength="2000" rows="4"></textarea><label>Competências</label><p class="form-hint">Selecione até 5 competências</p><div class="skills-editor"><div id="profile-skills-editor" class="skills-list"></div><button class="btn-secondary skills-picker-trigger" id="profile-skills-add" type="button" onclick="toggleSkillsPicker()">Adicionar</button><div class="skills-picker" id="profile-skills-picker" hidden><input id="profile-skill-search" type="search" placeholder="Pesquisar competência..." autocomplete="off" oninput="filterSkillOptions()"><div id="profile-skill-options" class="skill-options"></div><button class="btn-primary" id="skills-done-button" type="button" onclick="closeSkillsSelector(); return false;">Concluído</button></div><p class="form-hint" id="profile-skills-empty">Nenhuma competência adicionada</p></div><label for="profile-experience">Experiência profissional</label><select id="profile-experience" class="profile-select"><option value="">Selecione uma opção</option><option>Sem experiência</option><option>Menos de 1 ano</option><option>1 a 2 anos</option><option>3 a 5 anos</option><option>6 a 10 anos</option><option>Mais de 10 anos</option></select><label for="profile-education">Formação</label><select id="profile-education" class="profile-select"><option value="">Selecione uma opção</option><option>Ensino Fundamental</option><option>Ensino Médio</option><option>Curso Técnico</option><option>Licenciatura</option><option>Mestrado</option><option>Doutoramento</option><option>Curso Profissional</option><option>Outra formação</option></select><label for="profile-availability">Disponibilidade</label><select id="profile-availability" class="profile-select"><option value="">Selecione uma opção</option><option>Disponível imediatamente</option><option>Disponível em breve</option><option>Tempo integral</option><option>Meio período</option><option>Fins de semana</option><option>Por projeto</option><option>Freelance</option><option>Contrato temporário</option><option>Horário flexível</option><option>Não disponível</option></select><label for="profile-hourly-rate">Valor por hora (KZ)</label><input id="profile-hourly-rate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Opcional"><p class="form-hint">Informe o valor em kwanzas (KZ). Este campo não processa pagamentos.</p></div>
+        <div class="profile-form-section"><h4>Contactos e presença online</h4><label for="profile-location">Localização</label><input id="profile-location" type="text" maxlength="160"><label for="profile-phone">Telefone</label><input id="profile-phone" type="tel" maxlength="40"><label for="profile-website-url">Website / Portfólio</label><input id="profile-website-url" type="url" maxlength="500" placeholder="https://"><label for="profile-linkedin-url">LinkedIn</label><input id="profile-linkedin-url" type="url" maxlength="500" placeholder="https://linkedin.com/in/"></div>
+        <div class="profile-form-actions"><button class="btn-success" id="profile-save-button" type="submit">Salvar Perfil</button><button class="btn-secondary" type="button" onclick="cancelProfileEdit()">Cancelar</button></div>
+      </form>
+      <p id="profile-message" class="profile-message" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- 4. PERFIL PÚBLICO -->
+  <section id="public-profile" class="page">
+    <div class="public-profile-shell">
+      <div class="profile-heading">
+        <div>
+          <span class="eyebrow">PERFIL PÚBLICO</span>
+          <h2>Perfil profissional</h2>
+        </div>
+        <button class="btn-secondary" type="button" onclick="closePublicProfile()">Voltar</button>
+      </div>
+      <div id="public-profile-loading" class="profile-state">Carregando perfil...</div>
+      <div id="public-profile-error" class="profile-state error" hidden></div>
+      <article id="public-profile-content" class="public-profile-card" hidden>
+        <div class="public-profile-identity">
+          <div class="profile-avatar-wrap public-profile-avatar"><img id="public-profile-avatar" class="profile-avatar" alt="Foto do perfil" hidden><span id="public-profile-placeholder" class="profile-avatar-placeholder" aria-hidden="true">Foto</span></div>
+          <div><span class="eyebrow">PERFIL PROFISSIONAL</span><h3 id="public-profile-name">Não informado</h3><p id="public-profile-title">Não informado</p><span id="public-profile-role" class="profile-role-badge">Não informado</span></div>
+        </div>
+        <div class="public-profile-actions"><button id="public-profile-edit" class="btn-primary" type="button" onclick="openOwnProfileEditor()" hidden>Editar Perfil</button></div>
+        <div class="profile-display-grid public-profile-grid">
+          <section class="profile-section"><h4>Apresentação</h4><div class="profile-detail"><span>Biografia</span><p id="public-profile-bio">Não informado</p></div><div class="profile-detail"><span>Competências</span><p id="public-profile-skills">Não informado</p></div></section>
+          <section class="profile-section"><h4>Experiência profissional</h4><div class="profile-detail"><span>Experiência</span><p id="public-profile-experience">Não informado</p></div><div class="profile-detail"><span>Educação</span><p id="public-profile-education">Não informado</p></div></section>
+          <section class="profile-section"><h4>Disponibilidade e preço</h4><div class="profile-detail"><span>Disponibilidade</span><p id="public-profile-availability">Não informado</p></div><div class="profile-detail"><span>Preço por hora</span><p id="public-profile-hourly-rate">Não informado</p></div><div class="profile-detail"><span>Localização</span><p id="public-profile-location">Não informado</p></div></section>
+          <section class="profile-section"><h4>Presença online</h4><div class="profile-detail"><span>Website</span><p id="public-profile-website">Não informado</p></div><div class="profile-detail"><span>LinkedIn</span><p id="public-profile-linkedin">Não informado</p></div></section>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 5. OFERTAS DE TRABALHO -->
+  <section id="job-offers" class="page">
+    <div class="jobs-shell">
+      <div class="profile-heading">
+        <div><span class="eyebrow">OPORTUNIDADES</span><h2>Ofertas de Trabalho</h2><p class="section-subtitle">Encontre oportunidades profissionais abertas no Quinzowork.</p></div>
+        <div class="jobs-header-actions"><button class="btn-secondary" type="button" onclick="loadMyJobOffers()">Minhas ofertas</button><button class="btn-primary jobs-publish-button" type="button" onclick="openJobOfferForm()">Publicar oferta</button></div>
+      </div>
+      <div class="jobs-toolbar">
+        <input id="jobs-search" type="search" placeholder="Pesquisar por título, descrição ou competência" oninput="filterJobOffers()" aria-label="Pesquisar ofertas">
+        <select id="jobs-category" onchange="filterJobOffers()" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option><option>Tecnologia</option><option>Design</option><option>Marketing</option><option>Vendas</option><option>Atendimento</option><option>Administração</option><option>Engenharia</option><option>Construção</option><option>Educação</option><option>Tradução</option><option>Finanças</option><option>Saúde</option><option>Outros</option></select>
+        <select id="jobs-work-type" onchange="filterJobOffers()" aria-label="Filtrar por tipo de trabalho"><option value="">Todos os formatos</option><option value="Remoto">Remoto</option><option value="Presencial">Presencial</option><option value="Híbrido">Híbrido</option></select>
+        <select id="jobs-experience" onchange="filterJobOffers()" aria-label="Filtrar por experiência"><option value="">Toda experiência</option><option>Sem experiência</option><option>Júnior</option><option>Pleno</option><option>Sénior</option></select>
+        <select id="jobs-payment" onchange="filterJobOffers()" aria-label="Filtrar por pagamento"><option value="">Todos os pagamentos</option><option>Por hora</option><option>Por projeto</option><option>Salário mensal</option></select>
+      </div>
+      <p id="jobs-message" class="jobs-message" role="status" aria-live="polite"></p>
+      <p id="jobs-loading" class="jobs-loading">Carregando ofertas...</p>
+      <div id="jobs-list" class="jobs-list"></div>
+      <div id="jobs-empty" class="jobs-empty" hidden>Nenhuma oferta aberta encontrada.</div>
+      <form id="job-offer-form" class="job-offer-form card" hidden onsubmit="saveJobOffer(event)">
+        <div class="profile-heading"><div><span class="eyebrow">NOVA OPORTUNIDADE</span><h3 id="job-form-title">Publicar oferta</h3></div><button class="btn-secondary" type="button" onclick="closeJobOfferForm()">Cancelar</button></div>
+        <input id="job-offer-id" type="hidden">
+        <label for="job-title">Título</label><input id="job-title" type="text" maxlength="160" required>
+        <label for="job-description">Descrição</label><textarea id="job-description" rows="6" maxlength="5000" required></textarea>
+        <div class="job-form-grid"><div><label for="job-category">Categoria</label><select id="job-category-form" required><option value="">Selecione</option><option>Tecnologia</option><option>Design</option><option>Marketing</option><option>Vendas</option><option>Atendimento</option><option>Administração</option><option>Engenharia</option><option>Construção</option><option>Educação</option><option>Tradução</option><option>Finanças</option><option>Saúde</option><option>Outros</option></select></div><div><label for="job-work-type">Tipo de trabalho</label><select id="job-work-type-form" required><option value="">Selecione</option><option>Remoto</option><option>Presencial</option><option>Híbrido</option></select></div><div><label for="job-experience">Experiência</label><select id="job-experience-form" required><option value="">Selecione</option><option>Sem experiência</option><option>Júnior</option><option>Pleno</option><option>Sénior</option></select></div><div><label for="job-payment">Tipo de remuneração</label><select id="job-payment-form" required><option value="">Selecione</option><option>Por hora</option><option>Por projeto</option><option>Salário mensal</option></select></div><div><label for="job-budget">Orçamento / salário</label><input id="job-budget" type="number" min="0" step="0.01" required></div><div><label for="job-location">Localização</label><input id="job-location" type="text" maxlength="160" placeholder="Ex.: Luanda ou remoto"></div></div>
+        <label for="job-skills">Competências</label><input id="job-skills" type="text" maxlength="300" placeholder="Ex.: React, Design, Excel (separadas por vírgula)"><p class="form-hint">Use até 5 competências.</p>
+        <div class="profile-form-actions"><button class="btn-success" id="job-save-button" type="submit">Guardar oferta</button><button class="btn-secondary" type="button" onclick="closeJobOfferForm()">Cancelar</button></div>
+      </form>
+      <article id="job-offer-detail" class="job-offer-detail card" hidden></article>
+    </div>
+  </section>
+
+  <!-- 6. ADMINISTRAÇÃO PROTEGIDA -->
+  <section id="admin" class="page">
+    <div class="admin-panel" id="admin-panel" hidden>
+      <div class="profile-heading">
+        <div>
+          <span class="eyebrow">ACESSO ADMINISTRATIVO</span>
+          <h2>Administração</h2>
+        </div>
+        <button class="btn-secondary admin-back" type="button" onclick="navigate('sistema')">Voltar ao Painel</button>
+      </div>
+      <div class="admin-grid">
+        <article class="card admin-card"><h3>Dashboard</h3><p>Visão geral administrativa</p><button class="btn-primary" type="button" onclick="openAdminDashboard()">Abrir Dashboard</button></article>
+        <article class="card admin-card admin-users-card"><h3>Utilizadores</h3><p>Gestão de contas autenticadas</p><button class="btn-primary" type="button" onclick="openAdminUsers()">Abrir Utilizadores</button></article>
+        <article class="card admin-card admin-profiles-card"><h3>Perfis</h3><p>Consulta de perfis da plataforma</p><button class="btn-primary" type="button" onclick="openAdminProfiles()">Abrir Perfis</button></article>
+        <article class="card admin-card"><h3>Estado da plataforma</h3><p>Indicadores operacionais</p><button class="btn-primary" type="button" onclick="openAdminPlatform()">Verificar estado</button></article>
+      </div>
+      <section class="admin-users-view" id="admin-dashboard-view" hidden aria-labelledby="admin-dashboard-title">
+        <div class="admin-users-heading">
+          <div>
+            <span class="eyebrow">DADOS EM TEMPO REAL</span>
+            <h3 id="admin-dashboard-title">Dashboard</h3>
+          </div>
+          <button class="btn-secondary admin-users-refresh" id="admin-dashboard-refresh" type="button" onclick="loadAdminDashboard()">Atualizar</button>
+        </div>
+        <div class="admin-stats-grid" aria-live="polite">
+          <article class="admin-stat-card"><span>Total de utilizadores</span><strong id="admin-stat-total-users">0</strong></article>
+          <article class="admin-stat-card"><span>Total de perfis</span><strong id="admin-stat-total-profiles">0</strong></article>
+          <article class="admin-stat-card"><span>Freelancers</span><strong id="admin-stat-freelancers">0</strong></article>
+          <article class="admin-stat-card"><span>Job Seekers</span><strong id="admin-stat-job-seekers">0</strong></article>
+          <article class="admin-stat-card"><span>Remote Workers</span><strong id="admin-stat-remote-workers">0</strong></article>
+          <article class="admin-stat-card"><span>Creators</span><strong id="admin-stat-creators">0</strong></article>
+          <article class="admin-stat-card"><span>Businesses</span><strong id="admin-stat-businesses">0</strong></article>
+          <article class="admin-stat-card"><span>Utilizadores últimos 30 dias</span><strong id="admin-stat-recent-users">0</strong></article>
+        </div>
+        <p class="admin-users-message" id="admin-dashboard-message" role="status" aria-live="polite"></p>
+        <p class="admin-users-loading" id="admin-dashboard-loading" hidden>Carregando dashboard...</p>
+        <p class="admin-dashboard-updated" id="admin-dashboard-updated">Última atualização: Ainda não carregado</p>
+      </section>
+      <section class="admin-users-view" id="admin-platform-view" hidden aria-labelledby="admin-platform-title">
+        <div class="admin-users-heading">
+          <div>
+            <span class="eyebrow">MONITORIZAÇÃO EM TEMPO REAL</span>
+            <h3 id="admin-platform-title">Estado da plataforma</h3>
+          </div>
+          <button class="btn-secondary admin-users-refresh" id="admin-platform-refresh" type="button" onclick="loadAdminPlatformStatus()">Verificar novamente</button>
+        </div>
+        <div class="admin-platform-checks" aria-live="polite">
+          <div class="admin-platform-check"><span>Autenticação</span><strong class="admin-platform-status operational" id="admin-platform-authentication">Aguardando</strong></div>
+          <div class="admin-platform-check"><span>Banco de dados</span><strong class="admin-platform-status operational" id="admin-platform-database">Aguardando</strong></div>
+          <div class="admin-platform-check"><span>API administrativa</span><strong class="admin-platform-status operational" id="admin-platform-api">Aguardando</strong></div>
+        </div>
+        <div class="admin-platform-stats" aria-live="polite">
+          <div class="admin-platform-stat"><span>Total de utilizadores</span><strong id="admin-platform-users">0</strong></div>
+          <div class="admin-platform-stat"><span>Total de perfis</span><strong id="admin-platform-profiles">0</strong></div>
+        </div>
+        <p class="admin-users-message" id="admin-platform-message" role="status" aria-live="polite"></p>
+        <p class="admin-users-loading" id="admin-platform-loading" hidden>Verificando estado da plataforma...</p>
+        <p class="admin-platform-updated">Última verificação: <strong id="admin-platform-checked">Ainda não verificado</strong></p>
+      </section>
+      <section class="admin-users-view" id="admin-users-view" hidden aria-labelledby="admin-users-title">
+        <div class="admin-users-heading">
+          <div>
+            <span class="eyebrow">CONSULTA SEGURA</span>
+            <h3 id="admin-users-title">Utilizadores</h3>
+          </div>
+          <button class="btn-secondary admin-users-refresh" id="admin-users-refresh" type="button" onclick="loadAdminUsers()">Atualizar</button>
+        </div>
+        <p class="admin-users-summary"><strong id="admin-users-count">0</strong> utilizadores encontrados</p>
+        <p class="admin-users-message" id="admin-users-message" role="status" aria-live="polite"></p>
+        <p class="admin-users-loading" id="admin-users-loading" hidden>Carregando utilizadores...</p>
+        <div class="admin-users-table-wrap">
+          <table class="admin-users-table" id="admin-users-table">
+            <thead><tr><th>Nome</th><th>Email</th><th>Tipo de utilizador</th><th>Data de criação</th><th>Estado</th></tr></thead>
+            <tbody id="admin-users-body"></tbody>
+          </table>
+        </div>
+        <div class="admin-users-empty" id="admin-users-empty" hidden>Nenhum utilizador encontrado.</div>
+      </section>
+      <section class="admin-users-view" id="admin-profiles-view" hidden aria-labelledby="admin-profiles-title">
+        <div class="admin-users-heading">
+          <div>
+            <span class="eyebrow">CONSULTA SEGURA</span>
+            <h3 id="admin-profiles-title">Perfis</h3>
+          </div>
+          <button class="btn-secondary admin-users-refresh" id="admin-profiles-refresh" type="button" onclick="loadAdminProfiles()">Atualizar</button>
+        </div>
+        <p class="admin-users-summary"><strong id="admin-profiles-count">0</strong> perfis encontrados</p>
+        <p class="admin-users-message" id="admin-profiles-message" role="status" aria-live="polite"></p>
+        <p class="admin-users-loading" id="admin-profiles-loading" hidden>Carregando perfis...</p>
+        <div class="admin-users-table-wrap">
+          <table class="admin-users-table admin-profiles-table" id="admin-profiles-table">
+            <thead><tr><th>ID do utilizador</th><th>Nome completo</th><th>Tipo de utilizador</th><th>Avatar</th><th>Data de criação</th><th>Última atualização</th><th>Perfil público</th></tr></thead>
+            <tbody id="admin-profiles-body"></tbody>
+          </table>
+        </div>
+        <div class="admin-users-empty" id="admin-profiles-empty" hidden>Nenhum perfil encontrado.</div>
+      </section>
+    </div>
+    <div class="admin-denied" id="admin-denied" hidden>
+      <h2>Área restrita</h2>
+      <p>Você não tem permissão para acessar esta área.</p>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

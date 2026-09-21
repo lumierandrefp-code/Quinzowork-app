@@ -1,0 +1,6 @@
+{
+  "name": "QUINZOWORK | Plataforma Integrada",
+  "description": "Plataforma QUINZOWORK Integrada para serviços, produtos digitais e gestão eficiente",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
